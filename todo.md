@@ -1,5 +1,11 @@
 # CIRCUIT — Reorganización Max Protocol
 
+## Cambio solicitado: subida a Git
+- [ ] Comprobar estado local, rama y remoto Git.
+- [ ] Crear o usar repositorio remoto autorizado.
+- [ ] Hacer commit y subir la versión actual.
+- [ ] Confirmar enlace y estado de sincronización.
+
 ## Cambio solicitado: logo Max
 - [x] Copiar el logo proporcionado al directorio de activos web.
 - [x] Integrar el logo de Max en cabecera y marca compacta; favicon pendiente de conversión específica.
