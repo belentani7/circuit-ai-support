@@ -13,6 +13,7 @@ import { vitePluginManusRuntime } from "vite-plugin-manus-runtime";
 
 const PROJECT_ROOT = import.meta.dirname;
 const LOG_DIR = path.join(PROJECT_ROOT, ".manus-logs");
+const COLLECTOR_SCRIPT_PATH = path.join(PROJECT_ROOT, "devtools", "debug-collector.js");
 const MAX_LOG_SIZE_BYTES = 1 * 1024 * 1024; // 1MB per log file
 const TRIM_TARGET_BYTES = Math.floor(MAX_LOG_SIZE_BYTES * 0.6); // Trim to 60% to avoid constant re-trimming
 
@@ -75,13 +76,14 @@ function writeToLogFile(source: LogSource, entries: unknown[]) {
  * - Auto-trimmed when exceeding 1MB (keeps newest entries)
  */
 function vitePluginManusDebugCollector(): Plugin {
+  const isEnabled = () => process.env.MANUS_DEBUG_COLLECTOR === "1";
+
   return {
     name: "manus-debug-collector",
+    apply: "serve",
 
     transformIndexHtml(html) {
-      if (process.env.NODE_ENV === "production") {
-        return html;
-      }
+      if (!isEnabled()) return html;
       return {
         html,
         tags: [
@@ -98,14 +100,36 @@ function vitePluginManusDebugCollector(): Plugin {
     },
 
     configureServer(server: ViteDevServer) {
-      // POST /__manus__/logs: Browser sends logs (written directly to files)
-      server.middlewares.use("/__manus__/logs", (req, res, next) => {
-        if (req.method !== "POST") {
-          return next();
+      if (!isEnabled()) return;
+
+      console.warn(
+        "[manus-debug-collector] Opt-in enabled. Browser console, network payloads, and replay events may be written to .manus-logs/. Do not use with real personal data.",
+      );
+
+      server.middlewares.use("/__manus__/debug-collector.js", (req, res, next) => {
+        if (req.method !== "GET" && req.method !== "HEAD") return next();
+
+        try {
+          const script = fs.readFileSync(COLLECTOR_SCRIPT_PATH, "utf-8");
+          res.writeHead(200, {
+            "Content-Type": "text/javascript; charset=utf-8",
+            "Cache-Control": "no-store",
+          });
+          if (req.method === "HEAD") {
+            res.end();
+            return;
+          }
+          res.end(script);
+        } catch (error) {
+          next(error as Error);
         }
+      });
+
+      // POST /__manus__/logs stores browser data locally in .manus-logs/.
+      server.middlewares.use("/__manus__/logs", (req, res, next) => {
+        if (req.method !== "POST") return next();
 
         const handlePayload = (payload: any) => {
-          // Write logs directly to files
           if (payload.consoleLogs?.length > 0) {
             writeToLogFile("browserConsole", payload.consoleLogs);
           }
@@ -124,9 +148,9 @@ function vitePluginManusDebugCollector(): Plugin {
         if (reqBody && typeof reqBody === "object") {
           try {
             handlePayload(reqBody);
-          } catch (e) {
+          } catch (error) {
             res.writeHead(400, { "Content-Type": "application/json" });
-            res.end(JSON.stringify({ success: false, error: String(e) }));
+            res.end(JSON.stringify({ success: false, error: String(error) }));
           }
           return;
         }
@@ -138,18 +162,16 @@ function vitePluginManusDebugCollector(): Plugin {
 
         req.on("end", () => {
           try {
-            const payload = JSON.parse(body);
-            handlePayload(payload);
-          } catch (e) {
+            handlePayload(JSON.parse(body));
+          } catch (error) {
             res.writeHead(400, { "Content-Type": "application/json" });
-            res.end(JSON.stringify({ success: false, error: String(e) }));
+            res.end(JSON.stringify({ success: false, error: String(error) }));
           }
         });
       });
     },
   };
 }
-
 function vitePluginStorageProxy(): Plugin {
   return {
     name: "manus-storage-proxy",
