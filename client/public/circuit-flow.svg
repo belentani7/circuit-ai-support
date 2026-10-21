@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 280" role="img" aria-labelledby="title desc">
+<title id="title">Circuito de soporte asistido</title>
+<desc id="desc">Una solicitud entra en el sistema, se genera un borrador y una persona revisa la respuesta antes de enviarla.</desc>
+<rect width="900" height="280" fill="#141615"/>
+<path d="M0 48H900M0 140H900M0 232H900" stroke="#ffffff" stroke-opacity=".06"/>
+<path d="M100 140H800" stroke="#e8a838" stroke-width="2" stroke-dasharray="6 8"/>
+<g font-family="sans-serif" text-anchor="middle"><rect x="60" y="75" width="210" height="130" rx="8" fill="#202321" stroke="#e8a838"/>
+<text x="165" y="127" font-size="18" fill="#f5f3ef">01 · Entrada</text><text x="165" y="156" font-size="13" fill="#ffffff" opacity=".65">Consulta y contexto</text>
+<rect x="345" y="75" width="210" height="130" rx="8" fill="#202321" stroke="#e8a838"/>
+<text x="450" y="127" font-size="18" fill="#f5f3ef">02 · Propuesta</text><text x="450" y="156" font-size="13" fill="#ffffff" opacity=".65">Borrador explicable</text>
+<rect x="630" y="75" width="210" height="130" rx="8" fill="#202321" stroke="#34d399"/>
+<text x="735" y="127" font-size="18" fill="#f5f3ef">03 · Revisión</text><text x="735" y="156" font-size="13" fill="#ffffff" opacity=".65">Aprobación humana</text></g>
+</svg>
