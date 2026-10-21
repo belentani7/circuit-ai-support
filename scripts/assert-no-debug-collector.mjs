@@ -8,16 +8,28 @@ export function assertNoDebugCollector(publicDir) {
     throw new Error(`Missing production entry point: ${indexPath}`);
   }
 
-  const collectorPath = path.join(publicDir, "__manus__", "debug-collector.js");
-  if (fs.existsSync(collectorPath)) {
-    throw new Error(`Debug collector was copied into production assets: ${collectorPath}`);
-  }
-
-  const html = fs.readFileSync(indexPath, "utf8");
-  if (html.includes("debug-collector.js") || html.includes("manus-debug-collector")) {
-    throw new Error(`Production entry point references the debug collector: ${indexPath}`);
-  }
-
+  // Vite moves source references into hashed JS chunks; index.html alone is
+  // insufficient to prove that a debug/session collector was not shipped.
+  const blocked = /debug-collector\\.js|manus-debug-collector|__MANUS_DEBUG_COLLECTOR__/i;
+  const inspect = (directory) => {
+    for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
+      const absolute = path.join(directory, entry.name);
+      if (entry.isSymbolicLink()) {
+        throw new Error(`Unexpected symlink in production assets: ${absolute}`);
+      }
+      if (entry.isDirectory()) {
+        inspect(absolute);
+      } else if (entry.isFile()) {
+        if (blocked.test(entry.name)) {
+          throw new Error(`Debug collector file copied into production assets: ${absolute}`);
+        }
+        if (/\\.(html?|m?js|css)$/i.test(entry.name) && blocked.test(fs.readFileSync(absolute, "utf8"))) {
+          throw new Error(`Debug collector reference in production assets: ${absolute}`);
+        }
+      }
+    }
+  };
+  inspect(publicDir);
   return true;
 }
 
