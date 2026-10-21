@@ -3,6 +3,8 @@
 Archivo editorial interactivo sobre cómo implantar asistencia por IA con revisión humana. No es un chatbot con backend ni un servicio automático de correo: la interfaz actual muestra una arquitectura de referencia, una comparación histórica de modelos y plantillas de respuestas que el visitante puede copiar manualmente.
 
 ## Funcionalidad disponible
+
+La copia de plantillas muestra confirmación solo si el navegador realmente copió el texto; si falla, ofrece un error visible y una ruta alternativa. La compilación rechaza debug collectors en assets públicos.
 - Página de inicio con resumen, circuito de decisión, catálogo de plantillas, protocolos y guardrails.
 - Navegación adaptable a móvil.
 - Selección de propuestas y copia de plantillas en el navegador (sin envío ni almacenamiento en servidor).
