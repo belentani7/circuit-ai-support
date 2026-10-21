@@ -1,6 +1,8 @@
 // Dirección visual: Archivo operativo. Esta página convierte la investigación en un panel editorial legible y accionable.
 import { useMemo, useState } from "react";
 import { ArrowUpRight, Check, ChevronRight, CircleHelp, Copy, ExternalLink, Mail, MessageSquare, ShieldCheck, Sparkles, Zap } from "lucide-react";
+import { toast } from "sonner";
+import { copyText } from "../lib/copy-text.mjs";
 
 const models = [
   { id: "gpt-5-mini", label: "GPT-5 mini", note: "Recomendado", score: 92, price: "$0.25 / $2", fit: "Operativo", detail: "Rápido, con razonamiento, function calling y salidas estructuradas. Ideal para tareas bien definidas y alto volumen.", color: "amber" },
@@ -27,7 +29,17 @@ export default function Home() {
   const selected = useMemo(() => models.find((model) => model.id === activeModel) ?? models[0], [activeModel]);
 
   const copyTemplate = async () => {
-    await navigator.clipboard?.writeText(templates[template]);
+    const clipboard = typeof navigator === "undefined" ? undefined : navigator.clipboard;
+    const copiedSuccessfully = await copyText(
+      templates[template],
+      clipboard,
+      copyToLegacyClipboard,
+    );
+    if (!copiedSuccessfully) {
+      setCopied(false);
+      toast.error("No se pudo copiar. Selecciona y copia el texto manualmente.");
+      return;
+    }
     setCopied(true);
     window.setTimeout(() => setCopied(false), 1600);
   };
@@ -69,6 +81,26 @@ export default function Home() {
       </main>
     </div>
   );
+}
+
+function copyToLegacyClipboard(text: string): boolean {
+  if (typeof document === "undefined" || typeof document.execCommand !== "function") {
+    return false;
+  }
+  const textarea = document.createElement("textarea");
+  textarea.value = text;
+  textarea.setAttribute("readonly", "");
+  textarea.style.position = "fixed";
+  textarea.style.opacity = "0";
+  try {
+    document.body.appendChild(textarea);
+    textarea.select();
+    return document.execCommand("copy");
+  } catch {
+    return false;
+  } finally {
+    textarea.remove();
+  }
 }
 
 function Metric({ value, label, source }: { value: string; label: string; source: string }) { return <div className="bg-[#141615] p-5"><div className="text-3xl font-semibold tracking-[-0.05em] text-[#e8a838]">{value}</div><div className="mt-2 text-xs text-white/60">{label}</div><div className="mt-6 font-mono text-[9px] uppercase text-white/25">{source}</div></div>; }
