@@ -37,3 +37,27 @@ test("accepts a clean build that still has its entry point", (t) => {
   const publicDir = createPublicDir(t, { html: "<main>ok</main>" });
   assert.equal(assertNoDebugCollector(publicDir), true);
 });
+
+test("rejects debug collector references inside hashed JavaScript bundles", (t) => {
+  const publicDir = createPublicDir(t, { html: "<main>ok</main>" });
+  const assets = path.join(publicDir, "assets");
+  mkdirSync(assets);
+  writeFileSync(path.join(assets, "index-ab12.js"), 'fetch("/__manus__/debug-collector.js")');
+  assert.throws(() => assertNoDebugCollector(publicDir), /debug collector/i);
+});
+
+test("rejects copied collector files outside the legacy directory", (t) => {
+  const publicDir = createPublicDir(t, { html: "<main>ok</main>" });
+  const assets = path.join(publicDir, "assets");
+  mkdirSync(assets);
+  writeFileSync(path.join(assets, "debug-collector.js"), "console.log('leak')");
+  assert.throws(() => assertNoDebugCollector(publicDir), /debug collector/i);
+});
+
+test("accepts clean nested bundles", (t) => {
+  const publicDir = createPublicDir(t, { html: "<main>ok</main>" });
+  const assets = path.join(publicDir, "assets");
+  mkdirSync(assets);
+  writeFileSync(path.join(assets, "app-a1b2.js"), "console.log('clean')");
+  assert.equal(assertNoDebugCollector(publicDir), true);
+});
