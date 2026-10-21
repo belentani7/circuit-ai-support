@@ -10,7 +10,7 @@ export function assertNoDebugCollector(publicDir) {
 
   // Vite moves source references into hashed JS chunks; index.html alone is
   // insufficient to prove that a debug/session collector was not shipped.
-  const blocked = /debug-collector\\.js|manus-debug-collector|__MANUS_DEBUG_COLLECTOR__/i;
+  const blocked = /debug-collector\.js|manus-debug-collector|__MANUS_DEBUG_COLLECTOR__/i;
   const inspect = (directory) => {
     for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
       const absolute = path.join(directory, entry.name);
@@ -23,7 +23,7 @@ export function assertNoDebugCollector(publicDir) {
         if (blocked.test(entry.name)) {
           throw new Error(`Debug collector file copied into production assets: ${absolute}`);
         }
-        if (/\\.(html?|m?js|css)$/i.test(entry.name) && blocked.test(fs.readFileSync(absolute, "utf8"))) {
+        if (/\.(html?|m?js|css)$/i.test(entry.name) && blocked.test(fs.readFileSync(absolute, "utf8"))) {
           throw new Error(`Debug collector reference in production assets: ${absolute}`);
         }
       }
