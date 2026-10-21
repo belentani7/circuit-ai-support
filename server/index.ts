@@ -2,6 +2,7 @@ import express from "express";
 import { createServer } from "http";
 import path from "path";
 import { fileURLToPath } from "url";
+import { shouldServeSpa } from "./spa-route.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -18,8 +19,13 @@ async function startServer() {
 
   app.use(express.static(staticPath));
 
-  // Handle client-side routing - serve index.html for all routes
-  app.get("*", (_req, res) => {
+  // Keep unknown API and asset requests as 404; an HTML 200 would falsely
+  // imply that CIRCUIT implements APIs and can break missing asset diagnostics.
+  app.get("*", (req, res) => {
+    if (!shouldServeSpa(req.path)) {
+      res.status(404).type("text/plain").send("Not Found");
+      return;
+    }
     res.sendFile(path.join(staticPath, "index.html"));
   });
 
