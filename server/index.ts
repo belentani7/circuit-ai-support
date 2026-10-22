@@ -12,10 +12,10 @@ async function startServer() {
   const server = createServer(app);
 
   // Serve static files from dist/public in production
-  const staticPath =
-    process.env.NODE_ENV === "production"
-      ? path.resolve(__dirname, "public")
-      : path.resolve(__dirname, "..", "dist", "public");
+  // The compiled server always lives at dist/index.js. Its public files
+  // always live alongside it at dist/public, on Windows and POSIX alike.
+  // No NODE_ENV shell assignment is required to locate the assets.
+  const staticPath = path.resolve(__dirname, "public");
 
   app.use(express.static(staticPath));
 
