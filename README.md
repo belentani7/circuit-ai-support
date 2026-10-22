@@ -26,6 +26,9 @@ pnpm run start
 
 El build genera frontend en `dist/public` y servidor Express en `dist/index.js`; por defecto, el servidor escucha en el puerto 3000. Para desarrollo: `pnpm run dev`.
 
+La orden `pnpm run start` utiliza `node dist/index.js` y funciona igual en Windows y sistemas POSIX. El servidor encuentra los archivos ya compilados junto al ejecutable, sin exigir `NODE_ENV` en la shell. Las respuestas HTML, los recursos estáticos y los errores incluyen cabeceras de seguridad: CSP sin scripts externos, bloqueo de iframes, `nosniff`, política de referentes y permisos limitados. La hoja de Google Fonts y sus archivos de fuentes están permitidos expresamente; el prototipo sigue sin API de envío, correo ni procesamiento de datos de usuarios.
+
+
 ## Honestidad comercial y actualización
 
 - Precios, fichas y puntuaciones de modelos son **referencias históricas**: no son ofertas ni benchmarks validados en tiempo real.
