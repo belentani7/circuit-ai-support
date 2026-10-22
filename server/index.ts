@@ -3,6 +3,7 @@ import { createServer } from "http";
 import path from "path";
 import { fileURLToPath } from "url";
 import { shouldServeSpa } from "./spa-route.mjs";
+import { securityHeaders } from "./security-headers.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -10,6 +11,15 @@ const __dirname = path.dirname(__filename);
 async function startServer() {
   const app = express();
   const server = createServer(app);
+
+  app.disable("x-powered-by");
+  // Apply policy to both HTML fallbacks and static files, including 404s.
+  app.use((_req, res, next) => {
+    for (const [name, value] of Object.entries(securityHeaders)) {
+      res.setHeader(name, value);
+    }
+    next();
+  });
 
   // Serve static files from dist/public in production
   // The compiled server always lives at dist/index.js. Its public files
